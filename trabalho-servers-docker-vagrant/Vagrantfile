@@ -1,0 +1,16 @@
+Vagrant.configure("2") do |config|
+  config.vm.box = "ubuntu/bionic64"
+  config.vm.network "public_network", ip: "10.0.0.10", type:"static"
+  config.vm.provision "docker" do |docker|
+  config.vm.provision "shell", inline: <<-SHELL
+    sudo apt update
+    sudo apt install nfs-common
+    sudo apt install -y bind9
+    sudo docker pull networkboot/dhcpd:latest
+    sudo docker pull ubuntu/bind9
+    sudo docker pull httpd:2.4
+    sudo docker pull fauria/vsftpd
+    sudo docker pull itsthenetwork/nfs-server-alpine
+  SHELL
+  end
+end
