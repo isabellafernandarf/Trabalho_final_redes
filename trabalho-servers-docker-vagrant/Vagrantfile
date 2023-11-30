@@ -5,12 +5,11 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     sudo apt update
     sudo apt install nfs-common
-    sudo apt install -y bind9
-    sudo docker pull networkboot/dhcpd:latest
-    sudo docker pull ubuntu/bind9
-    sudo docker pull httpd:2.4
-    sudo docker pull fauria/vsftpd
-    sudo docker pull itsthenetwork/nfs-server-alpine
+    sudo docker docker run -it --rm --init --net host -v "$(pwd)/data":/data networkboot/dhcpd eth0. dhcpd
+    sudo docker docker run -d --name bind9-container -e TZ=UTC -p 30053:53 ubuntu/bind9:9.18-22.04_beta
+    sudo docker run -dit --name my-apache-app -p 8080:80 -v "$PWD":/usr/local/apache2/htdocs/ httpd:2.4
+    sudo docker run -d -p 21:21 -v /my/data/directory:/home/vsftpd --name vsftpd fauria/vsftpd
+    sudo docker run -d --name nfs --privileged -v /some/where/fileshare:/nfsshare -e
   SHELL
   end
 end
