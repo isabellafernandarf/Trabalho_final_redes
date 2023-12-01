@@ -9,8 +9,7 @@ Vagrant.configure("2") do |config|
   config.vm.box = "ubuntu/bionic64"
   config.vm.network "public_network", ip: "10.0.0.10", type:"static"
   config.vm.provision "docker" do |docker|
-  config.vm.provision "shell", inline: <<-SHELL
-    sudo apt update
+    config.vm.provision "shell", path: "script.sh"  sudo apt update
     sudo apt install nfs-common
     sudo docker docker run -it --rm --init --net host -v "$(pwd)/data":/data networkboot/dhcpd eth0. dhcpd
     sudo docker docker run -d --name bind9-container -e TZ=UTC -p 30053:53 ubuntu/bind9:9.18-22.04_beta
@@ -18,6 +17,12 @@ Vagrant.configure("2") do |config|
     sudo docker run -d -p 21:21 -v /my/data/directory:/home/vsftpd --name vsftpd fauria/vsftpd
     sudo docker run -d --name nfs --privileged -v /some/where/fileshare:/nfsshare -e
   SHELL
+  config.vm.define "client1" do |client1|
+    client1.vm.box = "ubuntu/bionic64"
+    client1.vm.network "public_network", ip: "10.0.0.11", type: "static"
+    client1.vm.provision "docker" do |docker|
+      docker.run "ubuntu"
+    end
   end
 end
 
@@ -34,6 +39,9 @@ end
 - sudo docker run -dit --name my-apache-app -p 8080:80 -v “$PWD”:/usr/local/apache2/htdocs/ httpd:2.4: executa um contêiner Docker com a imagem httpd:2.4, que contém um servidor web Apache. O Apache é um software que permite servir páginas web e outros conteúdos na internet. O comando também usa as opções -dit para executar o contêiner em segundo plano, interagir com ele e alocar um pseudo-TTY, --name my-apache-app para dar um nome ao contêiner, -p 8080:80 para mapear a porta 80 do contêiner para a porta 8080 do host, e -v “$PWD”:/usr/local/apache2/htdocs/ para montar o diretório atual do host no diretório htdocs do contêiner.
 - sudo docker run -d -p 21:21 -v /my/data/directory:/home/vsftpd --name vsftpd fauria/vsftpd: executa um contêiner Docker com a imagem fauria/vsftpd, que contém um servidor FTP (File Transfer Protocol) configurado com o vsftpd. O FTP é um protocolo que permite transferir arquivos entre máquinas em uma rede. O comando também usa as opções -d para executar o contêiner em segundo plano, -p 21:21 para mapear a porta 21 do contêiner para a porta 21 do host, -v /my/data/directory:/home/vsftpd para montar o diretório /my/data/directory do host no diretório /home/vsftpd do contêiner, e --name vsftpd para dar um nome ao contêiner.
 - sudo docker run -d --name nfs --privileged -v /some/where/fileshare:/nfsshare -e: executa um contêiner Docker com a imagem itsthenetwork/nfs-server-alpine, que contém um servidor NFS configurado com o Alpine Linux. O comando também usa as opções -d para executar o contêiner em segundo plano, --name nfs para dar um nome ao contêiner, --privileged para dar ao contêiner acesso total ao dispositivo host, -v /some/where/fileshare:/nfsshare para montar o diretório /some/where/fileshare do host no diretório /nfsshare do contêiner, e -e para definir a variável de ambiente SHARED_DIRECTORY como /nfsshare.
+- O método config.vm.define cria uma nova máquina virtual com o nome “client1”, o endereço IP 10.0.0.11, e o provisionador docker. Essa máquina virtual será uma vm cliente que poderá se comunicar com a máquina virtual principal e com os contêineres Docker. 
+- O bloco config.vm.define, especifica as mesmas configurações da máquina virtual principal, como a box, a rede e o provisionador docker. 
+- client1.vm.provision “docker” do |docker|, especifica os comandos para criar e executar os contêineres Docker na vm cliente.
 
 ####
 Inicialmente, é necessário subir a máquina virtual, entrando no diretório em que está incluído o Vagrant, digitando o comando “vagrant up” no terminal. Isso permitirá subir a imagem escolhida para a criação da VM. Logo após é possível entrar na máquina virtual digitando o comando “vagrant ssh default”. Default é o nome da VM. Em seguida entre na pasta vagrant com o comando “cd /vagrant” e o após o comando “sudo su” para conseguir as permissões necessárias. O próximo comando a ser digitado é o “./script.sh” que irá executar o script no sistema operacional. Por fim, digite o comando “docker ps -a” que irá listar todos os contêineres do docker, incluindo os que estiverem parados. 
